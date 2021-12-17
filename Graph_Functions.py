@@ -67,12 +67,12 @@ def num_edges(g):
     SAÍDA:
         - a_n (int): número de arestas
     """
+    a_n = 0
     v_n = len(g) # número de vértices do grafo
 
     # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
-        a_n = 0
-        x = 0
+        x = 0 # Variável que nos fará percorrer apenas a perte triangular superior da matriz
         for l in g:
             for i in range(x, v_n):
                 a_n += l[i]
@@ -80,7 +80,14 @@ def num_edges(g):
 
     # Caso o grafo seja representado por uma lista de adjacência
     if isinstance(g, dict):
-        ...
+        edges = [[0] for i in range(v_n)] # Lista em que na posição i iremos adicionar os vértices
+                                          # que se ligam ao vértice i.
+        for v in g:
+            for u in g[v]:
+                if u not in edges[v-1]:
+                    a_n += 1
+                edges[v-1].append(u)
+                edges[u-1].append(v)
 
     return a_n
 
@@ -96,9 +103,10 @@ def min_degree(g):
     SAÍDA:
         - d_min (int): grau mínimo
     """
+    degrees = [] # Lista que conterá o grau de cada vértice do grafo
+
     # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
-        degrees = [] # Lista que conterá o grau de cada vértice do grafo
         d = 0 # Grau do vértice que está sendo analisado
         for l in g:
             for e in l:
@@ -109,7 +117,9 @@ def min_degree(g):
 
     # Caso o grafo seja representado por uma lista de adjacência
     if isinstance(g, dict):
-        ...
+        for v in g:
+            degrees.append(len(g[v]))
+        d_min = min(degrees)
 
     return d_min
 
@@ -125,9 +135,10 @@ def max_degree(g):
     SAÍDA:
         - d_min (int): grau máximo
     """
+    degrees = [] # Lista que conterá o grau de cada vértice do grafo
+
     # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
-        degrees = [] # Lista que conterá o grau de cada vértice do grafo
         d = 0 # Grau do vértice que está sendo analisado
         for l in g:
             for e in l:
@@ -138,7 +149,9 @@ def max_degree(g):
 
     # Caso o grafo seja representado por uma lista de adjacência
     if isinstance(g, dict):
-        ...
+        for v in g:
+            degrees.append(len(g[v]))
+        d_max = max(degrees)
 
     return d_max
 
@@ -155,23 +168,24 @@ def mean_degree(g):
         - mean (float): média dos graus
     """
     v_n = len(g) # número de vértices do grafo
+    degrees = [] # Lista que conterá o grau de cada vértice do grafo
 
     # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
-        degrees = [] # Lista que conterá o grau de cada vértice do grafo
         d = 0 # Grau do vértice que está sendo analisado
         for l in g:
             for e in l:
                 d += e
             degrees.append(d)
             d = 0
-        mean = sum(degrees)/v_n
 
     # Caso o grafo seja representado por uma lista de adjacência
     if isinstance(g, dict):
-        ...
-
-    return mean
+        for v in g:
+            degrees.append(len(g[v]))
+    
+    mean = sum(degrees)/v_n
+    return round(mean, 2)
 
 
 def median_degree(g):
@@ -183,29 +197,31 @@ def median_degree(g):
         ou uma lista de adjacência
     ------------------------------------------------------------------------------
     SAÍDA:
-        - mean (int): mediana dos graus
+        - median (int): mediana dos graus
     """
     v_n = len(g) # número de vértices do grafo
+    degrees = [] # Lista que conterá o grau de cada vértice do grafo
 
     # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
-        degrees = [] # Lista que conterá o grau de cada vértice do grafo
         d = 0 # Grau do vértice que está sendo analisado
         for l in g:
             for e in l:
                 d += e
             degrees.append(d)
             d = 0
-        degrees.sort()
-        
-        if v_n % 2 == 0:
-            median = degrees[v_n//2]
-        else:
-            median = (degrees[(v_n - 1)//2] + degrees[(v_n + 1)//2]) // 2
 
     # Caso o grafo seja representado por uma lista de adjacência
     if isinstance(g, dict):
-        ...
+        for v in g:
+            degrees.append(len(g[v]))
+
+    # Ordenamos a lista de graus para podermos selecionar a mediana
+    degrees.sort()
+    if v_n % 2 == 0:
+        median = degrees[v_n//2]
+    else:
+        median = (degrees[(v_n - 1)//2] + degrees[(v_n + 1)//2]) // 2
 
     return median
 
