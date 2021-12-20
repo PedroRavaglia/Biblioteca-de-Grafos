@@ -17,7 +17,7 @@ def read_graph(path, g_type):
     with open(path, 'r') as f:
         n = f.readline()
         n = int(n) # Número de vértices do grafo
-        A = [] # Array que conterá as arestas do grafo
+        A = [] # Lista que conterá as arestas do grafo
 
         # Percorrendo o restante das linhas do arquivo e adicionando em A
         # as listas que representam as arestas
