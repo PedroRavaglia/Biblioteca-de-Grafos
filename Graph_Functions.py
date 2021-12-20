@@ -81,7 +81,7 @@ def num_edges(g):
         
 
     # Caso o grafo seja representado por uma lista de adjacência
-    if isinstance(g, dict):
+    elif isinstance(g, dict):
         edges = [[0] for i in range(v_n)] # Lista em que na posição i iremos adicionar os vértices
                                           # que se ligam ao vértice i.
         for v in g:
