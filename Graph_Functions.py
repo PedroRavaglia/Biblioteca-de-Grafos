@@ -1,4 +1,4 @@
-
+import operator
 
 def read_graph(path, g_type):
     """ 
@@ -278,7 +278,7 @@ def BFS(g, v_1):
                 if g[v-1][i] == 1 and visited[i] == 0:
                     visited[i] = 1
                     Q.append(i+1)
-            explored.append(v) 
+            explored.append(v)
 
     # Caso o grafo seja representado por uma lista de adjacência
     elif isinstance(g, dict):
@@ -340,6 +340,7 @@ def genTree_BFS(g, v_1, path):
     elif isinstance(g, dict):
         ...
 
+    # Escrevendo as informações obtidas da árvore no arquivo texto
     with open(path, 'w') as f:
         f.write('Árvore gerada pelo algoritmo de busca em largura (BFS) a partir do vértice ' + str(v_1) + ': \n\n')
 
@@ -362,12 +363,12 @@ def DFS(g, v_1):
         - explored (list): lista contendo os vértices do grafo na ordem em que foram
         explorados (removidos da pilha)
     '''
-    visited = [0] * len(g) # Lista informando quais vértices já foram explorados
+    visited = [0] * len(g) # Lista informando quais vértices já foram visitados
     visited[v_1-1] = 1
     explored = []
     P = [v_1]
     
-    # Caso o grafo seja representado por uma lista de adjacência
+    # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
         while P:
             u = P.pop()
@@ -386,9 +387,49 @@ def DFS(g, v_1):
 
 
 
-def genTree_DFS(g, v_1):
-    ...
-    
+def genTree_DFS(g, v_1, path):
+    '''
+    Cria um novo arquivo texto contendo a árvore gerada pelo algoritmo de busca em
+    profundidade (DFS) a partir do vértice v_1
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+        - v_1 (int): vértice inicial
+        - path (string):
+    '''
+    visited = [0] * len(g) # Lista informando quais vértices já foram visitados
+    levels = [[i, None] for i in range(len(g))] # Lista dos níveis de cada vértice da árvore gerada 
+    levels[v_1-1][1] = 0
+    prev = [None] * len(g) # Lista informando o pai de cada vértice
+    layer = 0 # Variável que nos informará em que layer estamos conforme formos entrando e saindo da
+              # função de recursão
+
+    # Definimos a função de recursão que usaremos para percorrer o grafo
+    def recur_DFS(g, v, visited, layer):
+        visited[v-1] = 1
+        layer += 1
+        for i in range(len(g)):
+            if g[v-1][i] == 1 and visited[i] == 0:
+                levels[i][1] = layer
+                prev[i] = v
+                recur_DFS(g, i+1, visited, layer)
+
+    # Chamando então a função para no final termos as listas dos níveis dos vértices e de seus vértices 
+    # pais completas
+    recur_DFS(g, v_1, visited, layer)
+
+    # Organizamos a lista de níveis de forma crescente, ou seja, do menor nível para o maior nível
+    levels = sorted(levels, key=operator.itemgetter(1))
+
+    # Por fim escrevemos as informações obtidas da árvore no arquivo texto
+    with open(path, 'w') as f:
+        f.write('Árvore gerada pelo algoritmo de busca em profundidade (DFS) a partir do vértice ' + str(v_1) + ': \n\n')
+
+        for v in levels:
+                f.write('Vértice: ' + str(v[0]+1) + ', Pai: ' + str(prev[v[0]]) + ', Nível: ' + str(v[1]) + '\n')
+
+
 
 def dist(g, v_1, v_2):
     ...
