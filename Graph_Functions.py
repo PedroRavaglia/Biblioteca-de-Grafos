@@ -1,13 +1,13 @@
 
-import sys
 from operator import itemgetter
+from bitarray import bitarray
 
 def read_graph(path, g_type):
     """ 
-    Cria uma representação do grafo a partirde um arquivo texto
+    Cria uma representação do grafo a partir de um arquivo texto
     ------------------------------------------------------------------------------
     ENTRADA:
-        - path (string): caminho para o arquivo texto do grafo
+        - path (string): caminho para o arquivo texto do grafo que será lido
         - g_type (string): tipo de representção do grafo, podendo ser 'ma' (matriz
         de adjacência) ou 'la' (lista de adjacência)
     ------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ def read_graph(path, g_type):
 
         # Criando a matriz de adjacência
         if (g_type == 'ma'):
-            ma = [[0]*n for i in range(n)] # matriz nxn com todas as entradas iguais a zero 
+            ma = [bitarray([0]*n) for i in range(n)]
             for a in A:
                 ma[a[0]-1][a[1]-1] = 1
                 ma[a[1]-1][a[0]-1] = 1
@@ -235,25 +235,6 @@ def median_degree(g):
 
 
 
-def out_graph(g, path):
-    """
-    Cria um novo arquivo texto contendo informações sobre o grafo
-    ------------------------------------------------------------------------------
-    ENTRADA:
-        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
-        ou uma lista de adjacência
-        - path (string): caminho que será usado para criar o arquivo texto
-    """
-    with open(path, 'w') as f:
-        f.write('Número de vértices: ' + str(len(g)) + '\n')
-        f.write('Número de arestas: ' + str(num_edges(g)) + '\n')
-        f.write('Grau mínimo: ' + str(min_degree(g)) + '\n')
-        f.write('Grau máximo: ' + str(max_degree(g)) + '\n')
-        f.write('Grau médio: ' + str(mean_degree(g)) + '\n')
-        f.write('Mediana de grau: ' + str(median_degree(g)) + '\n')
-
-
-
 def BFS(g, v_1):
     '''
     Implementação do algoritmo de busca em largura
@@ -305,7 +286,8 @@ def genTree_BFS(g, v_1, path):
         - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
         ou uma lista de adjacência
         - v_1 (int): vértice inicial
-        - path (string):
+        - path (string): caminho que será usado para criar o arquivo texto contendo
+        as informações da árvore
     '''
     visited = [0] * len(g) # Lista informando quais vértices já foram explorados
     visited[v_1-1] = 1
@@ -425,7 +407,8 @@ def genTree_DFS(g, v_1, path):
         - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
         ou uma lista de adjacência
         - v_1 (int): vértice inicial
-        - path (string):
+        - path (string): caminho que será usado para criar o arquivo texto contendo
+        as informações da árvore
     '''
     visited = [0] * len(g) # Lista informando quais vértices já foram visitados
     levels = [[i, None] for i in range(len(g))] # Lista dos níveis de cada vértice da árvore gerada 
@@ -473,7 +456,208 @@ def genTree_DFS(g, v_1, path):
 
 
 def dist(g, v_1, v_2):
-    ...
+    '''
+    Determina a distância entre dois vértices no grafo
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+        - v_1 (int): Primeiro vértice
+        - v_2 (int): Segundo vértice
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - (int): Distância entre o vértice v_1 e v_2
+    '''
+    visited = [0] * len(g) # Lista informando quais vértices já foram explorados
+    visited[v_1-1] = 1
+    levels = [None] * len(g) # Lista dos níveis de cada vértice da árvore gerada 
+    levels[v_1-1] = 0
+    Q = [v_1]
+
+    layer = 0 # Atual camada na qual estamos buscando os seus vértices
+    cur_layer = [] # Lista em que serão adicionados os vértices correspondendo à camada atual
+    layers = [[v_1]] # Lista contendo os vértices agrupados pelas suas respectivas camadas
+                     # Ex: layers[i] é a lista dos vértices contidos na camada i
+
+    # Caso o grafo seja representado por uma matriz de adjacência
+    if isinstance(g, list):
+        while Q:
+            v = Q.pop(0)
+            for i in range(len(g)):
+                # Encontrando os vértices filhos de v
+                if g[v-1][i] == 1 and visited[i] == 0:
+                    visited[i] = 1
+                    Q.append(i+1)
+
+                for u in layers[layer]:
+                    if g[i][u-1] == 1 and levels[i] == None:
+                        #
+                        if i+1 == v_2:
+                            return layer + 1
+                        levels[i] = layer + 1
+                        cur_layer.append(i+1)
+
+            # Depois teremos todos os vértices da camada atual contidos em cur_layer
+            layers.append(cur_layer)
+            # Caso a camada atual não seja vazia, incrementamos 'layer' para podermos encontrar os 
+            # vértices da próxima camada
+            if cur_layer:
+                layer += 1
+                cur_layer = []
+
+    # Caso o grafo seja representado por uma lista de adjacência
+    elif isinstance(g, dict):
+        while Q:
+            v = Q.pop(0)
+            for u in sorted(g[v]):
+                if u in g[v] and visited[u-1] == 0:
+                    visited[u-1] = 1
+                    Q.append(u)
+
+                for w in layers[layer]:
+                    if u in g[w] and levels[u-1] == None:
+                        if u == v_2:
+                            return layer + 1
+                        levels[u-1] = layer + 1
+                        cur_layer.append(u)
+
+            layers.append(cur_layer)
+            if cur_layer:
+                layer += 1
+                cur_layer = []
+
+    return layers
+
+
+
+def last_level(g, v_1):
+    '''
+    Determina o último nível da árvore gerada pelo algoritmo de busca em largura a
+    partir do vértice v_1
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+        - v_1 (int): vértice inicial
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - layer (int): Nível da última camada da árvore gerada apartir de v_1 usando
+        a BFS
+    '''
+    visited = [0] * len(g) # Lista informando quais vértices já foram explorados
+    visited[v_1-1] = 1
+    levels = [None] * len(g) # Lista dos níveis de cada vértice da árvore gerada 
+    levels[v_1-1] = 0
+    Q = [v_1]
+
+    layer = 0 # Atual camada na qual estamos buscando os seus vértices
+    cur_layer = [] # Lista em que serão adicionados os vértices correspondendo à camada atual
+    layers = [[v_1]] # Lista contendo os vértices agrupados pelas suas respectivas camadas
+                     # Ex: layers[i] é a lista dos vértices contidos na camada i
+
+    if isinstance(g, list):
+        while Q:
+            v = Q.pop(0)
+            for i in range(len(g)):
+                # Encontrando os vértices filhos de v
+                if g[v-1][i] == 1 and visited[i] == 0:
+                    visited[i] = 1
+                    Q.append(i+1)
+
+                for u in layers[layer]:
+                    if g[i][u-1] == 1 and levels[i] == None:
+                        levels[i] = layer + 1
+                        cur_layer.append(i+1)
+
+            # Depois teremos todos os vértices da camada atual contidos em cur_layer
+            layers.append(cur_layer)
+            # Caso a camada atual não seja vazia, incrementamos 'layer' para podermos encontrar os 
+            # vértices da próxima camada
+            if cur_layer:
+                layer += 1
+                cur_layer = []
+
+    return layer
+
+
 
 def diameter(g):
-    ...
+    '''
+    Determina o diâmetro do grafo 
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - diam (int): diâmetro
+    '''
+    diam = 0
+    cur_diam = 0 # Valor do maior diâmetro achado até o momento
+    
+    if isinstance(g, list):
+        for i in range(len(g)):
+            cur_diam = last_level(g, i+1)
+            if cur_diam > diam:
+                diam = cur_diam
+    return diam
+
+
+
+def connected(g):
+    '''
+    Determina as componentes conexas do grafo
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - C (list): Lista contendo as listas de vértices de cada componente conexa
+        do grafo em ordem decrescente de tamanho
+    '''
+    C = []
+    G = set([i+1 for i in range(len(g))]) # Contunto de todos os vértices do grafo
+
+    # Como a função BFS() retorna todos os vértices que podemos chegar a partir de 
+    # um vértice inicial, BFS(g, 1) nos retornará uma das partes conexas do grafo
+    c = set(BFS(g, 1))
+    # Ordenamos o conjunto de vértices desta parte conexa e adicionamos à C
+    C.append(sorted(c))
+
+    while G:
+        # Iremos subtrair de G os vértices da parte conexa encontrada
+        G = G - c
+        if G:
+            # Enquanto G não estiver vazio usamos o primeiro vértice de G (v) e 
+            # repetimos o mesmo processo
+            v = next(iter(G)) # 
+            c = set(BFS(g, v))
+            C.append(sorted(c))
+
+    return sorted(C, key=len, reverse=True)
+
+
+
+def out_graph(g, path):
+    """
+    Cria um novo arquivo texto contendo informações sobre o grafo
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+        - path (string): caminho que será usado para criar o arquivo texto
+    """
+    with open(path, 'w') as f:
+        f.write('Número de vértices: ' + str(len(g)) + '\n')
+        f.write('Número de arestas: ' + str(num_edges(g)) + '\n')
+        f.write('Grau mínimo: ' + str(min_degree(g)) + '\n')
+        f.write('Grau máximo: ' + str(max_degree(g)) + '\n')
+        f.write('Grau médio: ' + str(mean_degree(g)) + '\n')
+        f.write('Mediana de grau: ' + str(median_degree(g)) + '\n\n')
+
+        # Sobre as partes conexas:
+        C = connected(g)
+        f.write('Componentes conexas: ' + str(len(C)) + '\n')
+        f.write('Tamanho da maior componente conexa: ' + str(len(C[0])) + '\n')
+        f.write('Tamanho da menor componente conexa: ' + str(len(C[-1])) + '\n')
