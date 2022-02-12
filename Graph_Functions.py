@@ -2,7 +2,7 @@
 from operator import itemgetter
 from bitarray import bitarray
 
-def read_graph(path, g_type):
+def read_graph(path, g_type, weight=False):
     """ 
     Cria uma representação do grafo a partir de um arquivo texto
     ------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ def read_graph(path, g_type):
         - path (string): caminho para o arquivo texto do grafo que será lido
         - g_type (string): tipo de representção do grafo, podendo ser 'ma' (matriz
         de adjacência) ou 'la' (lista de adjacência)
+        - weight: indica se é um grafo tem pesos nas arestas ou não
     ------------------------------------------------------------------------------
     SAÍDA:
         - matriz de adjacência (lista)
@@ -27,35 +28,58 @@ def read_graph(path, g_type):
             a = line.split(' ')
             for i in range(2):
                 a[i] = int(a[i])
+            if (weight == True):
+                a[2] = float(a[2])
+
             A.append(a)
 
         # Criando a matriz de adjacência
         if (g_type == 'ma'):
-            ma = [bitarray([0]*n) for i in range(n)]
-            for a in A:
-                ma[a[0]-1][a[1]-1] = 1
-                ma[a[1]-1][a[0]-1] = 1
-            return ma
+            if (weight == False):
+                ma = [bitarray([0]*n) for i in range(n)]
+                for a in A:
+                    ma[a[0]-1][a[1]-1] = 1
+                    ma[a[1]-1][a[0]-1] = 1
+                return ma
+
+            elif (weight == True):
+                # ma_w = [[None]*n for i in range(n)]
+                ma_w = [[float('inf')]*n for i in range(n)]
+                for i in range(n):
+                    ma_w[i][i] = 0
+                for a in A:
+                    ma_w[a[0]-1][a[1]-1] = a[2]
+                    ma_w[a[1]-1][a[0]-1] = a[2]
+                return ma_w
 
         # Criando a lista de adjacência
         if (g_type == 'la'):
             la = {} # Dicionário inicialmente vazio 
-            for a in A:
-                if a[0] in la:
-                    la[a[0]].add(a[1])
-                else:
-                    la[a[0]] = {a[1]}
+            if (weight == False):
+                for a in A:
+                    if a[0] in la:
+                        la[a[0]].add(a[1])
+                    else:
+                        la[a[0]] = {a[1]}
 
-                if a[1] in la:
-                    la[a[1]].add(a[0])
-                else:
-                    la[a[1]] = {a[0]}
+                    if a[1] in la:
+                        la[a[1]].add(a[0])
+                    else:
+                        la[a[1]] = {a[0]}
+                
+            elif (weight == True):
+                for a in A:
+                    if a[0] in la:
+                        la[a[0]].add((a[1], a[2]))
+                    else:
+                        la[a[0]] = {(a[1], a[2])}
+
+                    if a[1] in la:
+                        la[a[1]].add((a[0], a[2]))
+                    else:
+                        la[a[1]] = {(a[0], a[2])}
+
             return la
-
-        # Caso o usuário tenha passado um tipo errado de representação
-        else:
-            print('\nTipo errado de representção do grafo. Escolher entre "ma" (matriz'
-                + 'de adjacência) ou "la" (lista de adjacência)')
 
 
 
