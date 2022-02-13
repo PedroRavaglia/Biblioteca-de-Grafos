@@ -663,6 +663,7 @@ def connected(g):
 
 
 
+
 def out_graph(g, path):
     """
     Cria um novo arquivo texto contendo informações sobre o grafo
@@ -685,3 +686,35 @@ def out_graph(g, path):
         f.write('Componentes conexas: ' + str(len(C)) + '\n')
         f.write('Tamanho da maior componente conexa: ' + str(len(C[0])) + '\n')
         f.write('Tamanho da menor componente conexa: ' + str(len(C[-1])) + '\n')
+
+
+def prim_mst(g, v_1, path):
+
+    v_n = len(g) # número de vértices do grafo
+    
+    if isinstance(g, list):
+
+        infinity = 999999999
+        selected_node = [0] * len(g)
+        selected_node[v_1] = True
+        num_edge = 0
+
+        print("Edge : weight \n")
+        while(num_edge < v_1):
+            min = infinity
+            a=0
+            b=0
+            for m in range(v_n):
+                if selected_node[m]:
+                    for n in range(v_n):
+                        if((not selected_node[n] and g[m][n])):
+                            if min > g[m][n]
+                            a=m
+                            b=n
+            
+            print(str(a) + "-" + str(b)+": "+ str(g[a][b]))
+            selected_node[b] = True
+            num_edge += 1
+
+        
+
