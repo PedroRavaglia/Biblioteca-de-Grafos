@@ -1,8 +1,9 @@
 
 from operator import itemgetter
 from bitarray import bitarray
+import numpy as np
 
-def read_graph(path, g_type, weight=False):
+def read_graph(path, g_type, weight=False, directed=False):
     """ 
     Cria uma representação do grafo a partir de um arquivo texto
     ------------------------------------------------------------------------------
@@ -10,7 +11,8 @@ def read_graph(path, g_type, weight=False):
         - path (string): caminho para o arquivo texto do grafo que será lido
         - g_type (string): tipo de representção do grafo, podendo ser 'ma' (matriz
         de adjacência) ou 'la' (lista de adjacência)
-        - weight: indica se é um grafo tem pesos nas arestas ou não
+        - weight (boolean): indica se é um grafo com pesos nas arestas ou não
+        - directed (boolean): indica se o grafo é direcionado ou não
     ------------------------------------------------------------------------------
     SAÍDA:
         - matriz de adjacência (lista)
@@ -34,26 +36,38 @@ def read_graph(path, g_type, weight=False):
             A.append(a)
 
         # Criando a matriz de adjacência
-        if (g_type == 'ma'):
-            if (weight == False):
+        if g_type == 'ma':
+            # Grafo sem pesos enão direcionado
+            if weight == False:
                 ma = [bitarray([0]*n) for i in range(n)]
                 for a in A:
                     ma[a[0]-1][a[1]-1] = 1
                     ma[a[1]-1][a[0]-1] = 1
                 return ma
 
-            elif (weight == True):
-                # ma_w = [[None]*n for i in range(n)]
-                ma_w = [[float('inf')]*n for i in range(n)]
+            # Grafo com pesos e não direcionado
+            elif weight == True and directed == False:
+                ma_w = np.matrix([[float('inf')]*n]*n, dtype=np.float16)
+
                 for i in range(n):
-                    ma_w[i][i] = 0
+                    ma_w[i, i] = 0
                 for a in A:
-                    ma_w[a[0]-1][a[1]-1] = a[2]
-                    ma_w[a[1]-1][a[0]-1] = a[2]
+                    ma_w[a[0]-1, a[1]-1] = a[2]
+                    ma_w[a[1]-1, a[0]-1] = a[2]
                 return ma_w
 
+            # Grafo com pesos e direcionado
+            elif weight == True and directed == True:
+                ma_w = np.matrix([[float('inf')]*n]*n, dtype=np.float16)
+                for i in range(n):
+                    ma_w[i, i] = 0
+                for a in A:
+                    ma_w[a[0]-1, a[1]-1] = a[2]
+                return ma_w
+
+
         # Criando a lista de adjacência
-        if (g_type == 'la'):
+        if g_type == 'la':
             la = {} # Dicionário inicialmente vazio 
             if (weight == False):
                 for a in A:
@@ -67,29 +81,37 @@ def read_graph(path, g_type, weight=False):
                     else:
                         la[a[1]] = {a[0]}
                 
-            elif (weight == True):
+            elif weight == True:
                 for a in A:
                     if a[0] in la:
                         la[a[0]].add((a[1], a[2]))
                     else:
                         la[a[0]] = {(a[1], a[2])}
 
-                    if a[1] in la:
-                        la[a[1]].add((a[0], a[2]))
-                    else:
-                        la[a[1]] = {(a[0], a[2])}
+                    if directed == False:
+                        if a[1] in la:
+                            la[a[1]].add((a[0], a[2]))
+                        else:
+                            la[a[1]] = {(a[0], a[2])}
 
             return la
+                        
+
+        # Caso o usuário tenha passado um tipo errado de representação
+        else:
+            print('\nTipo errado de representção do grafo. Escolher entre "ma" (matriz'
+                  + 'de adjacência) ou "la" (lista de adjacência)')
 
 
 
-def num_edges(g):
+def num_edges(g, weight=False):
     """
     Determina o número de arestas de um grafo
     ------------------------------------------------------------------------------
     ENTRADA:
         - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
         ou uma lista de adjacência
+        - weight (boolean): indica se é um grafo com pesos nas arestas ou não
     ------------------------------------------------------------------------------
     SAÍDA:
         - a_n (int): número de arestas
@@ -100,11 +122,18 @@ def num_edges(g):
     # Caso o grafo seja representado por uma matriz de adjacência
     if isinstance(g, list):
         x = 0 # Variável que nos fará percorrer apenas a perte triangular superior da matriz
-        for l in g:
-            for i in range(x, v_n):
-                a_n += l[i]
-            x += 1
-        
+        if weight == False:
+            for l in g:
+                for i in range(x, v_n):
+                    a_n += l[i]
+                x += 1
+        # Contagem de arestas caso o grafo tenha pesos
+        else:
+            for i in range(v_n):
+                for j in range(x, v_n):
+                    if g[i][j] != float('inf') and i != j:
+                        a_n += 1
+                x += 1
 
     # Caso o grafo seja representado por uma lista de adjacência
     elif isinstance(g, dict):
@@ -687,7 +716,70 @@ def out_graph(g, path):
         f.write('Tamanho da maior componente conexa: ' + str(len(C[0])) + '\n')
         f.write('Tamanho da menor componente conexa: ' + str(len(C[-1])) + '\n')
 
+        
+        
+#---------------------------------------------------------------------------------------------------------------------------------
+#
+## FUNÇÕES PARA O TRABALHO 2:
 
+
+def dijkstra(g, s):
+    '''
+    Calcula a distância entre s e todos os outros vértices do grafo não direcionado
+    e com pesos reais positivos g usando o algoritmo de Dijkstra
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista ou dicionário): grafo reprasentado por uma matriz de adjacência 
+        ou uma lista de adjacência
+        - s (int): vértice inicial
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - dist (list): lista contendo a distância entre o vértice s e cada vértice 
+        do grafo
+        - parents (list): parents[i] nos informa quem é o pai do vértice i no caminho 
+        mínimo do vértice s até o vértice i
+    '''
+    s = s-1
+    n = len(g)
+    INF = float('inf')
+
+    dist = np.array([INF]*n, dtype=np.float16)
+    dist[s] = 0
+    parents = [-1]*n
+
+    heap = heapdict()
+    for i in range(n):
+        heap[i] = INF
+    heap[s] = 0
+
+    # Iplementação usando matriz de adjacência
+    if isinstance(g, list):
+        while heap:
+            u = heap.popitem()[0]
+            for v in range(u, n): # Grafo não direcionado
+                # if g[u, v] != INF or g[v, u] != INF: # Grafo não direcionado
+                if g[v, u] != INF: # Grafo não direcionado
+                    if dist[v] > dist[u] + g[u, v]:
+                        dist[v] = dist[u] + g[u, v]
+                        heap[v] = dist[v]
+                        parents[v] = u
+
+    # Iplementação usando lista de adjacência
+    elif isinstance(g, dict):
+        while heap:
+            u = heap.popitem()[0]
+            if u+1 in g:
+                for v in g[u+1]:
+                    vertex = v[0]-1
+                    if dist[vertex] > dist[u] + v[1] and vertex in heap:
+                        dist[vertex] = dist[u] + v[1]
+                        heap[vertex] = dist[vertex]
+                        parents[vertex] = u
+
+    return [dist, parents]
+
+
+        
 def prim_mst(g, v_1, path):
 
     v_n = len(g) # número de vértices do grafo
