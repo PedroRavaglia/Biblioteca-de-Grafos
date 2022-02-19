@@ -2,6 +2,7 @@
 from operator import itemgetter
 from bitarray import bitarray
 import numpy as np
+from heapdict import heapdict
 
 def read_graph(path, g_type, weight=False, directed=False):
     """ 
@@ -757,8 +758,7 @@ def dijkstra(g, s):
         while heap:
             u = heap.popitem()[0]
             for v in range(u, n): # Grafo não direcionado
-                # if g[u, v] != INF or g[v, u] != INF: # Grafo não direcionado
-                if g[v, u] != INF: # Grafo não direcionado
+                if g[v, u] != INF:
                     if dist[v] > dist[u] + g[u, v]:
                         dist[v] = dist[u] + g[u, v]
                         heap[v] = dist[v]
