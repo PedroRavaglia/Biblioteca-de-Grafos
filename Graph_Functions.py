@@ -871,19 +871,23 @@ def minimal_path(v, u, prev):
 
         
     
-def prim_mst(g, v_1, path):
+def prim_mst(g, v_1):
 
     v_n = len(g) # número de vértices do grafo
+    v_1 = v_1 - 1 
+
+
     
     if isinstance(g, list):
 
-        infinity = 999999999
+        infinity = float('inf')
         selected_node = [0] * len(g)
         selected_node[v_1] = True
         num_edge = 0
+        list_mst = []
 
-        print("Edge : weight \n")
-        while(num_edge < v_1):
+        #print("Edge : weight \n")
+        while(num_edge < (v_n - 1)):
             min = infinity
             a=0
             b=0
@@ -891,13 +895,57 @@ def prim_mst(g, v_1, path):
                 if selected_node[m]:
                     for n in range(v_n):
                         if((not selected_node[n] and g[m][n])):
-                            if min > g[m][n]
-                            a=m
-                            b=n
+                            if(min > g[m][n]):
+                                min = g[m][n]
+                                a=m
+                                b=n
             
-            print(str(a) + "-" + str(b)+": "+ str(g[a][b]))
+            #print(str(a) + "-" + str(b)+": "+ str(g[a][b]))
+            list_mst.append([a+1,b+1,g[a][b]])
             selected_node[b] = True
             num_edge += 1
+
+        return list_mst
+
+def totalWeight(edges_mst):
+    n=len(edges_mst)
+    sum_weight = 0
+    for i in range(n):
+        sum_weight += edges_mst[i][2]
+
+    return sum_weight
+
+def out_graph_mst(g, path, v_1):
+    """
+    Cria um novo arquivo texto contendo informações sobre o grafo
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g é uma lista: grafo reprasentado por uma matriz de adjacência 
+        
+        - path (string): caminho que será usado para criar o arquivo texto
+    """
+
+    #preciso de uma lista com as arestas da MST
+
+    prim_result = prim_mst(g, v_1)
+
+    with open(path, 'w') as f:
+
+        f.write("Total vértices : " + str(len(g)) + '\n')
+
+    
+        f.write("Peso total: " + str(totalWeight(prim_result))+'\n')
+
+        
+
+        for arestas in prim_result:
+            f.write(str(arestas[0]) + ' ' + str(arestas[1]) + ' ' + str(arestas[2]) + '\n')
+
+
+        
+#return ma_w
+#lista1 = read_graph("grafo_W_2_1.txt", 'ma', weight=True)
+#out_graph_mst(lista1,"TESTE_GRAFO2_2100.txt", 1)
 
         
 
