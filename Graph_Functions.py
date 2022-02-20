@@ -858,7 +858,7 @@ def minimal_path(v, u, prev):
     SAÍDA:
         - path (list): caminho mínimo entre v e u
     '''
-    path = [end]
+    path = [u]
     end = u
     v = v-1
     u = u-1
