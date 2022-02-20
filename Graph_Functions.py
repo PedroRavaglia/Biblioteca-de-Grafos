@@ -942,10 +942,6 @@ def out_graph_mst(g, path, v_1):
             f.write(str(arestas[0]) + ' ' + str(arestas[1]) + ' ' + str(arestas[2]) + '\n')
 
 
-        
-#return ma_w
-#lista1 = read_graph("grafo_W_2_1.txt", 'ma', weight=True)
-#out_graph_mst(lista1,"TESTE_GRAFO2_2100.txt", 1)
 
         
 
