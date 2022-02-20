@@ -757,7 +757,7 @@ def dijkstra(g, s):
     if isinstance(g, list):
         while heap:
             u = heap.popitem()[0]
-            for v in range(u, n): # Grafo não direcionado
+            for v in range(n):
                 if g[v, u] != INF:
                     if dist[v] > dist[u] + g[u, v]:
                         dist[v] = dist[u] + g[u, v]
