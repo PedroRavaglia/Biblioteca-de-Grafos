@@ -779,7 +779,103 @@ def dijkstra(g, s):
     return [dist, parents]
 
 
+
+def dijkstra_path(parents, v):
+    '''
+    Reconstrói o caminho mínimo até v a partir da lista parents retornada pelo 
+    algoritmo de Dijkstra
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - parents (list): parents[i] nos informa quem é o pai do vértice i no caminho 
+        mínimo do vértice inicial (s) até o vértice i
+        - v (int): vértice final
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - path (list): caminho mínimo de s até v
+    '''
+    path = [v]
+    parent = parents[v-1]
+
+    cte = 0
+    while parent != -1:
+        cte+=1
+        if cte>40:
+            print('limite')
+            break
+        path.insert(0, parent+1)
+        parent = parents[parent]
+
+    return path
+
+
+
+def floyd_warshall(g):
+    '''
+    Calcula a distância entre todos os vértices de um grafo direcionado com pesos
+    reais g usando o algoritmo de Floyd-Warshall
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - g (lista): grafo reprasentado por uma matriz de adjacência
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - d (list): matriz que em d[i, j] nos informa a distância entre os vértices
+        i e j
+        - prev (list): prev[i, j] nos informa quem é o pai do vértice j no caminho
+        mínimo de i para j
+    '''
+    n = len(g)
+    INF = float('inf')
+    prev = np.matrix([[-1]*n]*n, dtype=np.int)
+    d = g.copy()
+
+    for i in range(n):
+        for j in range(n):
+            if i != j and g[i, j] != INF:
+                prev[i, j] = i
+
+    for k in range(n):
+        for i in range(n):
+            if d[i, k] != float('inf'):
+                for j in range(n):
+                    if d[k, j] != float('inf'):
+                        if d[i, j] > d[i, k] + d[k, j]:
+                            if i == j and d[i, k] + d[k, j] < 0:
+                                print('\n-> Grafo contem ciclo negativo <-\n')
+                                return [None, None]
+                            d[i, j] = d[i, k] + d[k, j]
+                            prev[i, j] = prev[k, j]
+
+    return [d, prev]
+
+
+
+def minimal_path(v, u, prev):
+    '''
+    A partir da lista prev retornada pelo algoritmo de Floyd-Warshall retorna o 
+    caminho mínimo entre v e u
+    ------------------------------------------------------------------------------
+    ENTRADA:
+        - v (int): vértice inicial
+        - u (int): vértice final
+        - prev (list): prev[i, j] nos informa quem é o pai do vértice j no caminho
+        mínimo de i para j
+    ------------------------------------------------------------------------------
+    SAÍDA:
+        - path (list): caminho mínimo entre v e u
+    '''
+    end = u
+    v = v-1
+    u = u-1
+    path = [u+1]
+    while u != v:
+        u = prev.item((v, u))
+        if u == -1:
+            return 'Não existe caminho de ' + str(v+1) + ' até ' + str(end) 
+        path.insert(0, u+1)
+    return path
+
         
+    
 def prim_mst(g, v_1, path):
 
     v_n = len(g) # número de vértices do grafo
