@@ -796,12 +796,7 @@ def dijkstra_path(parents, v):
     path = [v]
     parent = parents[v-1]
 
-    cte = 0
     while parent != -1:
-        cte+=1
-        if cte>40:
-            print('limite')
-            break
         path.insert(0, parent+1)
         parent = parents[parent]
 
